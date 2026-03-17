@@ -10,6 +10,7 @@ import time
 import json
 import itertools
 import random
+import os
 
 app = Flask(__name__)
 
@@ -560,8 +561,16 @@ for nameApp in application:
                       
                 print('Iteracao nro: ',i,' FinalTime: ',FinalTime,'\n\n')   
         
+            # =================================================================
+            # NOME DA PASTA PARA ESTE LOTE DE TESTES
+            # =================================================================
+            PASTA_RESULTADOS = "resultados_ParametrosAlternados1-1" # Mude isto para cada tipo de teste!
+            
+            if not os.path.exists(PASTA_RESULTADOS):
+                os.makedirs(PASTA_RESULTADOS) # Cria a pasta se não existir
+
             ####### Grava em Arquivo os resultados obtidos: 
-            nomeArq = 'resultData' + app['app']  + '.txt'
+            nomeArq = os.path.join(PASTA_RESULTADOS, 'resultData' + app['app'] + '.txt')
             with open(nomeArq, 'a') as arq2:
                 arq2.write('Set of Provider: ')
                 arq2.write(namePrvd)
@@ -603,8 +612,8 @@ for nameApp in application:
                     arq2.write('\n\n\n')
             
             ####### Grava em Arquivo o tempo
-            nomeArq = 'executionTime' + app['app']  +  '.txt'
-            with open(nomeArq, 'a') as arq3:
+            nomeArqTime = os.path.join(PASTA_RESULTADOS, 'executionTime' + app['app'] + '.txt')
+            with open(nomeArqTime, 'a') as arq3:
                 arq3.write('Set of Provider: ')
                 arq3.write(namePrvd)
                 arq3.write('\n\n')
@@ -612,4 +621,5 @@ for nameApp in application:
                     arq3.writelines(str(tm))
                     arq3.write('\n')
              
+            print(f"Resultados gravados na pasta: {PASTA_RESULTADOS}")
             print(timeList)

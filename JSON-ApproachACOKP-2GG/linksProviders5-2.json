@@ -1,0 +1,142 @@
+[
+     {
+          "out": "P0",
+          "in": "P1",
+          "availability": 99.494,
+          "delay": 2,
+          "cost": 2
+     },
+     {
+          "out": "P0",
+          "in": "P2",
+          "availability": 99.182,
+          "delay": 2,
+          "cost": 9
+     },
+     {
+          "out": "P0",
+          "in": "P3",
+          "availability": 99.886,
+          "delay": 2,
+          "cost": 3
+     },
+     {
+          "out": "P0",
+          "in": "P4",
+          "availability": 99.365,
+          "delay": 2,
+          "cost": 8
+     },
+     {
+          "out": "P1",
+          "in": "P0",
+          "availability": 99.529,
+          "delay": 2,
+          "cost": 8
+     },
+     {
+          "out": "P1",
+          "in": "P2",
+          "availability": 99.279,
+          "delay": 2,
+          "cost": 9
+     },
+     {
+          "out": "P1",
+          "in": "P3",
+          "availability": 99.667,
+          "delay": 2,
+          "cost": 7
+     },
+     {
+          "out": "P1",
+          "in": "P4",
+          "availability": 99.77,
+          "delay": 2,
+          "cost": 4
+     },
+     {
+          "out": "P2",
+          "in": "P0",
+          "availability": 99.941,
+          "delay": 2,
+          "cost": 3
+     },
+     {
+          "out": "P2",
+          "in": "P1",
+          "availability": 99.737,
+          "delay": 2,
+          "cost": 3
+     },
+     {
+          "out": "P2",
+          "in": "P3",
+          "availability": 99.128,
+          "delay": 2,
+          "cost": 7
+     },
+     {
+          "out": "P2",
+          "in": "P4",
+          "availability": 99.458,
+          "delay": 2,
+          "cost": 5
+     },
+     {
+          "out": "P3",
+          "in": "P0",
+          "availability": 99.31,
+          "delay": 2,
+          "cost": 8
+     },
+     {
+          "out": "P3",
+          "in": "P1",
+          "availability": 99.708,
+          "delay": 2,
+          "cost": 2
+     },
+     {
+          "out": "P3",
+          "in": "P2",
+          "availability": 99.572,
+          "delay": 2,
+          "cost": 8
+     },
+     {
+          "out": "P3",
+          "in": "P4",
+          "availability": 99.416,
+          "delay": 2,
+          "cost": 5
+     },
+     {
+          "out": "P4",
+          "in": "P0",
+          "availability": 99.263,
+          "delay": 2,
+          "cost": 4
+     },
+     {
+          "out": "P4",
+          "in": "P1",
+          "availability": 99.519,
+          "delay": 2,
+          "cost": 5
+     },
+     {
+          "out": "P4",
+          "in": "P2",
+          "availability": 99.559,
+          "delay": 2,
+          "cost": 7
+     },
+     {
+          "out": "P4",
+          "in": "P3",
+          "availability": 99.924,
+          "delay": 2,
+          "cost": 2
+     }
+]
