@@ -1,0 +1,4 @@
+Cenario Parametros ABC: Explotacao_Profunda
+Set of Provider: c:\Users\Válber\Downloads\HoneyABC\HoneyABC\JSON-ApproachACOKP-2GG\ProvidersACOKP10-10.json
+
+306

@@ -1,0 +1,23 @@
+Cenario Parametros ABC: Exploracao_Agressiva (iteMax=50, nBees=40, limit=10)
+Set of Provider: c:\Users\Válber\Downloads\HoneyABC\HoneyABC\JSON-ApproachACOKP-2GG\ProvidersACOKP10-10.json
+
+MS1: Availability = 99.17 Response Time = 17.0 Cost = 34.5 score = 1.0 Provider = P4
+MS10: Availability = 99.0 Response Time = 18 Cost = 66 score = 2.3 Provider = P1
+MS11: Availability = 98.39 Response Time = 17 Cost = 69 score = 2.08 Provider = P1
+MS12: Availability = 99.68 Response Time = 17 Cost = 60 score = 2.31 Provider = P5
+MS13: Availability = 98.71 Response Time = 14 Cost = 60 score = 1.95 Provider = P9
+MS14: Availability = 98.59 Response Time = 14 Cost = 47 score = 2.19 Provider = P9
+MS15: Availability = 98.59 Response Time = 14 Cost = 47 score = 2.19 Provider = P9
+MS2: Availability = 99.73 Response Time = 19 Cost = 71 score = 2.17 Provider = P5
+MS3: Availability = 98.23 Response Time = 18 Cost = 63 score = 1.62 Provider = P3
+MS4: Availability = 99.73 Response Time = 19 Cost = 71 score = 2.17 Provider = P5
+MS5: Availability = 99.65 Response Time = 18 Cost = 58 score = 2.48 Provider = P5
+MS6: Availability = 98.59 Response Time = 14 Cost = 47 score = 2.19 Provider = P9
+MS7: Availability = 99.16 Response Time = 14 Cost = 53 score = 2.38 Provider = P9
+MS8: Availability = 99.16 Response Time = 14 Cost = 53 score = 2.38 Provider = P9
+MS9: Availability = 98.59 Response Time = 14 Cost = 47 score = 2.19 Provider = P9
+APP Data: Availability = 92.15 Response Time = 144.0 Cost = 492.0 Socre = 0.4437
+Priorities: Availability = 0.333 response Time = 0.333 Cost = 0.333
+[('Term1', [('Flow1-1', 0.5, [('MS14', [{'lci': 'lci0', 'fr': 1}]), ('MS24', [{'lci': 'lci1', 'fr': 1}]), ('MS44', [{'lci': 'lci2', 'fr': 1}]), ('MS134', [{'lci': 'lci5', 'fr': 1}])]), ('Flow2-1', 0.5, [('MS14', [{'lci': 'lci0', 'fr': 1}]), ('MS34', [{'lci': 'lci3', 'fr': 1}]), ('MS54', [{'lci': 'lci4', 'fr': 1}]), ('MS144', [{'lci': 'lci6', 'fr': 1}])])]), ('Term2', [('Flow1-2', 0.5, [('MS64', [{'lci': 'lci0', 'fr': 1}]), ('MS74', [{'lci': 'lci1', 'fr': 1}]), ('MS84', [{'lci': 'lci2', 'fr': 1}]), ('MS124', [{'lci': 'lci3', 'fr': 1}])]), ('Flow2-2', 0.5, [('MS64', [{'lci': 'lci0', 'fr': 1}]), ('MS94', [{'lci': 'lci4', 'fr': 1}]), ('MS104', [{'lci': 'lci5', 'fr': 1}]), ('MS114', [{'lci': 'lci6', 'fr': 1}]), ('MS154', [{'lci': 'lci7', 'fr': 1}])])])]
+
+

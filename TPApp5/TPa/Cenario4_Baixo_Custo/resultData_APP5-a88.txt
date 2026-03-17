@@ -1,0 +1,26 @@
+Cenario Parametros ABC: Baixo_Custo (iteMax=25, nBees=10, limit=15)
+Set of Provider: c:\Users\Válber\Downloads\HoneyABC\HoneyABC\JSON-ApproachACOKP-2GG\ProvidersACOKP10-10.json
+
+MS1: Availability = 99.25 Response Time = 12.0 Cost = 29.5 score = 1.54 Provider = P9
+MS10: Availability = 99.0 Response Time = 18 Cost = 66 score = 2.23 Provider = P1
+MS11: Availability = 98.93 Response Time = 17 Cost = 71 score = 2.23 Provider = P1
+MS12: Availability = 98.39 Response Time = 17 Cost = 69 score = 2.11 Provider = P1
+MS13: Availability = 98.71 Response Time = 14 Cost = 60 score = 1.89 Provider = P9
+MS14: Availability = 98.14 Response Time = 14 Cost = 54 score = 1.83 Provider = P9
+MS15: Availability = 98.81 Response Time = 18 Cost = 63 score = 1.54 Provider = P5
+MS16: Availability = 98.62 Response Time = 17 Cost = 82 score = 2.51 Provider = P0
+MS17: Availability = 98.44 Response Time = 17 Cost = 69 score = 1.81 Provider = P7
+MS18: Availability = 98.21 Response Time = 15 Cost = 80 score = 2.42 Provider = P0
+MS2: Availability = 98.14 Response Time = 14 Cost = 54 score = 1.68 Provider = P9
+MS3: Availability = 99.68 Response Time = 17 Cost = 60 score = 2.14 Provider = P5
+MS4: Availability = 98.59 Response Time = 14 Cost = 47 score = 2.08 Provider = P9
+MS5: Availability = 99.2 Response Time = 17 Cost = 81 score = 2.22 Provider = P2
+MS6: Availability = 99.7 Response Time = 20 Cost = 69 score = 2.29 Provider = P5
+MS7: Availability = 99.65 Response Time = 18 Cost = 58 score = 2.01 Provider = P5
+MS8: Availability = 99.16 Response Time = 14 Cost = 53 score = 2.29 Provider = P9
+MS9: Availability = 98.59 Response Time = 14 Cost = 47 score = 2.08 Provider = P9
+APP Data: Availability = 90.25 Response Time = 170.5 Cost = 638.5 Socre = 0.3297
+Priorities: Availability = 0.5 response Time = 0.25 Cost = 0.25
+[('Term1', [('Flow1-1', 0.5, [('MS15', [{'lci': 'lci0', 'fr': 1}]), ('MS25', [{'lci': 'lci1', 'fr': 1}]), ('MS45', [{'lci': 'lci2', 'fr': 1}]), ('MS135', [{'lci': 'lci5', 'fr': 1}])]), ('Flow2-1', 0.5, [('MS15', [{'lci': 'lci0', 'fr': 1}]), ('MS35', [{'lci': 'lci3', 'fr': 1}]), ('MS55', [{'lci': 'lci4', 'fr': 1}]), ('MS145', [{'lci': 'lci6', 'fr': 1}]), ('MS175', [{'lci': 'lci7', 'fr': 1}])])]), ('Term2', [('Flow1-2', 0.5, [('MS65', [{'lci': 'lci0', 'fr': 1}]), ('MS75', [{'lci': 'lci1', 'fr': 1}]), ('MS85', [{'lci': 'lci2', 'fr': 1}]), ('MS125', [{'lci': 'lci3', 'fr': 1}]), ('MS185', [{'lci': 'lci9', 'fr': 1}])]), ('Flow2-2', 0.5, [('MS65', [{'lci': 'lci0', 'fr': 1}]), ('MS95', [{'lci': 'lci4', 'fr': 1}]), ('MS105', [{'lci': 'lci5', 'fr': 1}]), ('MS115', [{'lci': 'lci6', 'fr': 1}]), ('MS155', [{'lci': 'lci7', 'fr': 1}]), ('MS165', [{'lci': 'lci8', 'fr': 1}])])])]
+
+
