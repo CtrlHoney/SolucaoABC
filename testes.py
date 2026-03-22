@@ -1,57 +1,54 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Jan 31 11:23:13 2018
-Adaptado para ABC (Artificial Bee Colony) - Automação de Cenários e Aplicações
-"""
 
 from flask import Flask
 import time
 import json
 import itertools
 import random
+import os
 
 app = Flask(__name__)
 
-import os
-
-# 1. Descobre a pasta exata onde este arquivo Python está salvo (ex: a pasta HoneyABC)
+# ========================================================================
+# CONFIGURAÇÕES DE DIRETÓRIOS E ESTEIRA DE TESTES
+# ========================================================================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# 2. Constrói o caminho completo até a pasta dos arquivos JSON
 JSON_DIR = os.path.join(BASE_DIR, 'JSON-ApproachACOKP-2GG')
+PASTA_SAIDA = os.path.join(BASE_DIR, "Testes_Estresse_Escalonado")
 
-# 3. Atualiza os caminhos iniciais usando a nova variável JSON_DIR
-prvd = [os.path.join(JSON_DIR, 'ProvidersACOKP10-10.json')]
-linksPrvd = [os.path.join(JSON_DIR, 'linksProviders10.json')]
+if not os.path.exists(PASTA_SAIDA):
+    os.makedirs(PASTA_SAIDA)
 
-# ========================================================================
-# CONFIGURAÇÃO DOS CENÁRIOS E APLICAÇÕES
-# ========================================================================
+# Aplicações a serem testadas (1 a 5, usando 'ability' como padrão de complexidade)
+apps_range = range(1, 6)
+variacao = "ability"
 
-cenarios = [
-    {"id": 1, "nome": "Padrao", "iteMax": 50, "nBees": 20, "limit": 20},
-    {"id": 2, "nome": "Exploracao_Agressiva", "iteMax": 50, "nBees": 40, "limit": 10},
-    {"id": 3, "nome": "Explotacao_Profunda", "iteMax": 100, "nBees": 20, "limit": 40},
-    {"id": 4, "nome": "Baixo_Custo", "iteMax": 25, "nBees": 10, "limit": 15},
-    {"id": 5, "nome": "Enxame_Massivo", "iteMax": 150, "nBees": 50, "limit": 30}
+# Níveis de Estresse (Do menor arquivo até o 100-10)
+niveis_estresse = [
+    {"id": "01_Prov05", "prov": "ProvidersACOKP5-5.json", "links": "linksProviders5.json"},
+    {"id": "02_Prov10", "prov": "ProvidersACOKP10-10.json", "links": "linksProviders10.json"},
+    {"id": "03_Prov15", "prov": "ProvidersACOKP15-10.json", "links": "linksProviders15.json"},
+    {"id": "04_Prov20", "prov": "ProvidersACOKP20-20.json", "links": "linksProviders20.json"},
+    {"id": "05_Prov25", "prov": "ProvidersACOKP25-10.json", "links": "linksProviders25.json"},
+    {"id": "06_Prov30", "prov": "ProvidersACOKP30-10.json", "links": "linksProviders30.json"},
+    {"id": "07_Prov100", "prov": "ProvidersACOKP100-10.json", "links": "linksProviders100.json"}
 ]
 
-apps_range = range(1, 6) # Aplicações de 1 a 5
-variacoes = {
-    'ability': 'a',
-    'cost': 'c',
-    'rt': 'r',
-    'acr': 'acr'
-}
+# Parâmetros Padrão do ABC
+ITE_MAX = 50
+N_BEES = 20
+LIMIT = 20
 
-##################################### METODOS JSON PARA PROVIDERS e APPLICATIONS ##################################################
-
-count = 0
-listaTeste = []
+# Globais nativas
 listaCandGeral = []
 listaCandEsp = []
+qtdALlSerPrvd = []
+qtdAllCombPrvd = []
 
+# ========================================================================
+# MÉTODOS DO ALGORITMO
+# ========================================================================
 def calcNumofMS(nameMS):
     numofMS = ""
     for i in range(len(nameMS)-1):
@@ -82,14 +79,8 @@ def calcProfit(terms,MatLinks,priorities,totalCost,appAva,appRT):
               
             for i in range(len(links)-1):
               for link_item in MatLinks:
-                 
-                 # 1. Ignora posições vazias (As listas vazias geradas na inicialização)
-                 if not link_item: 
-                     continue
-                 
-                 # 2. Desencapsula caso o JSON traga a propriedade dentro de uma lista
+                 if not link_item: continue # CORREÇÃO DE LISTA VAZIA
                  link = link_item[0] if isinstance(link_item, list) else link_item
-                 
                  if(link['out'] == links[i] and link['in'] == links[i+1]): 
                    ava *= link['availability']/100
                    rt += link['delay']
@@ -108,7 +99,6 @@ def calcProfit(terms,MatLinks,priorities,totalCost,appAva,appRT):
 
     return (profit,avaTerms,rtTerms,costTerms)
 
-#################### ALGORITMO ABC ####################
 def decode_solution(indices, seqFlowsMS, MatIn):
     sAnt = []
     for eachTerm in seqFlowsMS:
@@ -132,47 +122,35 @@ def abcKnapSack(MatIn, totalCost, appAva, appRT, iteMax, nBees, limit, seqFlowsM
     fontes = []
     fitness = []
     falhas = [0] * n_fontes
-    
     melhor_sAPP = [([], 0.0)]
     
-    # Inicialização
     for i in range(n_fontes):
         sol = [random.randint(0, len(MatIn[j])-1) for j in range(num_ms)]
         sAnt = decode_solution(sol, seqFlowsMS, MatIn)
         prof, ava, rt, cost = calcProfit(sAnt, MatLinks, priorities, totalCost, appAva, appRT)
         fontes.append(sol)
         fitness.append(prof)
-        
         if prof > 0.0:
             if melhor_sAPP == [([], 0.0)] or prof > melhor_sAPP[0][1]:
                 melhor_sAPP = [(sAnt, prof, ava, rt, cost)]
 
-    # Loop Principal
     for ite in range(iteMax):
-        # Fase Empregadas
         for i in range(n_fontes):
             nova_sol = list(fontes[i])
             ms_idx = random.randint(0, num_ms - 1)
             nova_sol[ms_idx] = random.randint(0, len(MatIn[ms_idx]) - 1)
-            
             sAnt = decode_solution(nova_sol, seqFlowsMS, MatIn)
             prof, ava, rt, cost = calcProfit(sAnt, MatLinks, priorities, totalCost, appAva, appRT)
-            
             if prof > fitness[i]:
                 fontes[i] = nova_sol
                 fitness[i] = prof
                 falhas[i] = 0
                 if prof > 0.0 and (melhor_sAPP == [([], 0.0)] or prof > melhor_sAPP[0][1]):
                     melhor_sAPP = [(sAnt, prof, ava, rt, cost)]
-            else:
-                falhas[i] += 1
+            else: falhas[i] += 1
                 
-        # Fase Observadoras
         total_fit = sum(fitness)
-        if total_fit == 0:
-            probs = [1.0 / n_fontes] * n_fontes
-        else:
-            probs = [f / total_fit for f in fitness]
+        probs = [1.0 / n_fontes] * n_fontes if total_fit == 0 else [f / total_fit for f in fitness]
             
         for _ in range(n_fontes):
             r = random.random()
@@ -183,24 +161,19 @@ def abcKnapSack(MatIn, totalCost, appAva, appRT, iteMax, nBees, limit, seqFlowsM
                 if r <= acum:
                     idx_escolhido = idx
                     break
-                    
             nova_sol = list(fontes[idx_escolhido])
             ms_idx = random.randint(0, num_ms - 1)
             nova_sol[ms_idx] = random.randint(0, len(MatIn[ms_idx]) - 1)
-            
             sAnt = decode_solution(nova_sol, seqFlowsMS, MatIn)
             prof, ava, rt, cost = calcProfit(sAnt, MatLinks, priorities, totalCost, appAva, appRT)
-            
             if prof > fitness[idx_escolhido]:
                 fontes[idx_escolhido] = nova_sol
                 fitness[idx_escolhido] = prof
                 falhas[idx_escolhido] = 0
                 if prof > 0.0 and (melhor_sAPP == [([], 0.0)] or prof > melhor_sAPP[0][1]):
                     melhor_sAPP = [(sAnt, prof, ava, rt, cost)]
-            else:
-                falhas[idx_escolhido] += 1
+            else: falhas[idx_escolhido] += 1
                 
-        # Fase Escoteiras
         for i in range(n_fontes):
             if falhas[i] > limit:
                 fontes[i] = [random.randint(0, len(MatIn[j])-1) for j in range(num_ms)]
@@ -213,16 +186,10 @@ def abcKnapSack(MatIn, totalCost, appAva, appRT, iteMax, nBees, limit, seqFlowsM
 
     return melhor_sAPP
 
-#################### MÉTODOS DE DESCOBERTA E SAW ####################
-    
 def minCapabilities(capabilitiesSr,capabilitiesPr):
-    if (not capabilitiesPr and not capabilitiesSr):
-        adequate = True
-    else:
-        if (capabilitiesPr[0]['CPU'] >= capabilitiesSr[0]['CPU'] and capabilitiesPr[0]['Core'] >= capabilitiesSr[0]['Core'] and capabilitiesPr[0]['RAM'] >= capabilitiesSr[0]['RAM'] and capabilitiesPr[0]['HD'] >= capabilitiesSr[0]['HD']):
-            adequate = True
-        else: adequate = False
-    return adequate
+    if (not capabilitiesPr and not capabilitiesSr): return True
+    if (capabilitiesPr[0]['CPU'] >= capabilitiesSr[0]['CPU'] and capabilitiesPr[0]['Core'] >= capabilitiesSr[0]['Core'] and capabilitiesPr[0]['RAM'] >= capabilitiesSr[0]['RAM'] and capabilitiesPr[0]['HD'] >= capabilitiesSr[0]['HD']): return True
+    return False
 
 def discovery(service,provider):
     lista = []
@@ -237,56 +204,28 @@ def discovery(service,provider):
 def servicosCandidatosMS(microservice,dataPrvd):
    candidatesPrSr = []
    listaTeste = []
+   global qtdALlSerPrvd
    for pr in dataPrvd:
        candidateSr = []
        for sr in microservice['services']: 
            discovList = discovery(sr,pr)
-           if (discovList != [{}] and discovList != []):
-               candidateSr.append((sr['nameSr'],discovList))
+           if (discovList != [{}] and discovList != []): candidateSr.append((sr['nameSr'],discovList))
            else: 
                candidateSr.clear()
                break
          
        if (candidateSr != []):
            total = 0
-           global qtdALlSerPrvd # Declarando para atualizar corretamente no novo escopo aninhado
            qtdALlSerPrvd.append((pr['provider'],microservice['nameMS'], len(candidateSr)))
-           for listaSr in candidateSr:
-               total += len(listaSr)
+           for listaSr in candidateSr: total += len(listaSr)
            listaTeste.append((pr['provider'], total))
            candidatesPrSr.append((pr['provider'],microservice['nameMS'],candidateSr))     
-     
    return (candidatesPrSr,listaTeste)
 
-def maximum(srL,req):
-    reqMax = 0
-    for sr in srL:
-        if (sr['userRequirements'][0][req] > reqMax):
-            reqMax = sr['userRequirements'][0][req]
-    return reqMax        
-    
-def minimum(srL,req):
-    reqMin = 100000
-    for sr in srL:
-        if (sr['userRequirements'][0][req] < reqMin):
-            reqMin = sr['userRequirements'][0][req]
-    return reqMin        
-
-def maximumRespTime(srL,req1,req2):
-    reqMax = 0
-    for sr in srL:
-        responseTime = sr['userRequirements'][0][req1] + sr['userRequirements'][0][req2]
-        if (responseTime > reqMax):
-            reqMax = responseTime
-    return reqMax        
-
-def minimumRespTime(srL,req1,req2):
-    reqMin = 10000
-    for sr in srL:
-        responseTime = sr['userRequirements'][0][req1] + sr['userRequirements'][0][req2]
-        if ( responseTime < reqMin):
-            reqMin =  responseTime
-    return reqMin
+def maximum(srL,req): return max([sr['userRequirements'][0][req] for sr in srL] + [0])
+def minimum(srL,req): return min([sr['userRequirements'][0][req] for sr in srL] + [100000])
+def maximumRespTime(srL,req1,req2): return max([sr['userRequirements'][0][req1] + sr['userRequirements'][0][req2] for sr in srL] + [0])
+def minimumRespTime(srL,req1,req2): return min([sr['userRequirements'][0][req1] + sr['userRequirements'][0][req2] for sr in srL] + [10000])
 
 def saw1(adqSrlist):
     vAllSr = []
@@ -297,20 +236,11 @@ def saw1(adqSrlist):
         rtRqMin = minimumRespTime(srL[1],'executionTime','delay')
         cRqMax = maximum(srL[1],'cost')
         cRqMin = minimum(srL[1],'cost')
-        
         vSr = []
         for sr in srL[1]:
-            if (aRqMax == aRqMin):
-                aSr = 1.0
-            else: aSr = round((sr['userRequirements'][0]['availability'] - aRqMin) / (aRqMax - aRqMin),3)
-            
-            if (rtRqMax == rtRqMin):
-                rtSr = 1.0
-            else: rtSr = round((rtRqMax - (sr['userRequirements'][0]['executionTime'] + sr['userRequirements'][0]['delay'])) / (rtRqMax - rtRqMin),3)
-            
-            if (cRqMax == cRqMin):
-                cSr = 1.0
-            else: cSr = round((sr['userRequirements'][0]['cost'] - cRqMin) / (cRqMax - cRqMin),3)
+            aSr = 1.0 if aRqMax == aRqMin else round((sr['userRequirements'][0]['availability'] - aRqMin) / (aRqMax - aRqMin),3)
+            rtSr = 1.0 if rtRqMax == rtRqMin else round((rtRqMax - (sr['userRequirements'][0]['executionTime'] + sr['userRequirements'][0]['delay'])) / (rtRqMax - rtRqMin),3)
+            cSr = 1.0 if cRqMax == cRqMin else round((sr['userRequirements'][0]['cost'] - cRqMin) / (cRqMax - cRqMin),3)
             vSr.append((aSr,rtSr,cSr))
         vAllSr.append(vSr)
     return vAllSr
@@ -320,69 +250,36 @@ def saw2(adqSrlist, vReq, weights):
     for candReq,candSr in zip(vReq, adqSrlist):
         scoreSrList = []
         for srReq,Sr in zip(candReq,candSr[1]):
-            score = 0
-            for i in range(len(srReq)):
-                score += round((srReq[i] * weights[i]),3)
+            score = sum(round((srReq[i] * weights[i]),3) for i in range(len(srReq)))
             scoreSrList.append((Sr,score))    
         scoreAllList.append(scoreSrList) 
     return scoreAllList    
 
 def avbComb(flow,prob):
     av = 1
-    for serv in flow:
-        sr = serv[0][0]
-        av *= (sr['userRequirements'][0]['availability']/100)
-    av *= prob
-    av *= serv[1][0]['ava']/100
-    av = round((av*100),2)
-    return av
+    for serv in flow: av *= (serv[0][0]['userRequirements'][0]['availability']/100)
+    av *= prob * (serv[1][0]['ava']/100)
+    return round((av*100),2)
 
 def rtComb(flow,prob):
-    rt = 0
-    for serv in flow:
-        sr = serv[0][0]
-        rt += sr['userRequirements'][0]['executionTime'] + sr['userRequirements'][0]['delay']
-    rt *= prob  
-    rt += serv[1][0]['delay']
-    return rt  
+    rt = sum(serv[0][0]['userRequirements'][0]['executionTime'] + serv[0][0]['userRequirements'][0]['delay'] for serv in flow)
+    return (rt * prob) + flow[-1][1][0]['delay']
 
 def costComb(flow,prob):
-    cost = 0
-    for serv in flow:
-        sr = serv[0][0]
-        cost += sr['userRequirements'][0]['cost']
-    cost *= prob
-    cost += serv[1][0]['cost']    
-    return cost    
+    cost = sum(serv[0][0]['userRequirements'][0]['cost'] for serv in flow)
+    return (cost * prob) + flow[-1][1][0]['cost']
 
-def calcScore(flow,probability):
-    score = 0
-    for eachMS in flow:
-       score += eachMS[0][1]
-    score *= probability
-    return score
+def calcScore(flow,probability): return sum(eachMS[0][1] for eachMS in flow) * probability
 
-def calcNumServ(nameServ):
-   numofSr = ""
-   for i in range(len(nameServ)):
-       if (nameServ[i] in ["0","1","2","3","4","5","6","7","8","9"]):
-           numofSr += nameServ[i] 
-   return int(numofSr)
+def calcNumServ(nameServ): return int("".join(c for c in nameServ if c.isdigit()))
 
 def combinationsSr(serCadPrv,nameMS,namePr,costAPP,avbtyAPP,rspTmAPP,seqFlow):
     combList = []
     combs = list(itertools.product(*serCadPrv))
     for comb in combs:
-        costMS = 0
-        avlbtyMS = 1
-        respTmMS  = 0
-        scoreMS = 0
+        costMS, avlbtyMS, respTmMS, scoreMS = 0, 1, 0, 0
         for eachTerm in seqFlow:
-          avlbty = 0
-          cost = 0
-          respTm = 0
-          score = 0
-        
+          avlbty, cost, respTm, score = 0, 0, 0, 0
           for eachFlow in eachTerm[1]:
             flow = []
             probability = eachFlow[1]
@@ -393,62 +290,42 @@ def combinationsSr(serCadPrv,nameMS,namePr,costAPP,avbtyAPP,rspTmAPP,seqFlow):
             avlbty += avbComb(flow,probability)
             respTm += rtComb(flow,probability)
             score += calcScore(flow,probability)
-          
           costMS += cost
           avlbtyMS *= (avlbty/100)
           respTmMS += respTm
           scoreMS += score
         avlbtyMS = round((avlbtyMS*100),2)    
-       
         if (costMS <= costAPP and avlbtyMS >= avbtyAPP and respTmMS <= rspTmAPP):
-         combList.append(((nameMS,namePr,comb,costMS,avlbtyMS,respTmMS),round(scoreMS,2)))
-
-    return (combList)     
+            combList.append(((nameMS,namePr,comb,costMS,avlbtyMS,respTmMS),round(scoreMS,2)))
+    return combList     
 
 def calcNumofPrvds(nameLinks):
    numofPrvd = ""
    for i in range(1,len(nameLinks)):
-       if (nameLinks[i] in ["0","1","2","3","4","5","6","7","8","9"] and nameLinks[i-1] != "-"):
-           numofPrvd += nameLinks[i]
-   return int(numofPrvd) 
+       if (nameLinks[i].isdigit() and nameLinks[i-1] != "-"): numofPrvd += nameLinks[i]
+   return int(numofPrvd) if numofPrvd else 1
 
-def cloudsSelection(nameApp,dataAMS,dataPrvd):
-   app = [ app for app in dataAMS if (app['app'] == nameApp['app']) ]
+def cloudsSelection(app, dataAMS, dataPrvd, iteApp):
    combMSPr = []
    global qtdAllCombPrvd
-
-   for ms in app[0]['microservices']:
+   for ms in app['microservices']:
        combListSr = []
-       combAvgList = []
        combPr = []
-       listaTesteEsp = []
-  
        srCandMS = servicosCandidatosMS(ms,dataPrvd)
-       listaCandGeral.append((ms['nameMS'],srCandMS[1]))
- 
        iteMS =  [item['terms'] for item in iteApp[0]['iterationsMS']  if (item['microservice'] == ms['nameMS'])]    
        termsApp = [(term['nameTerm'],[term['sequences']]) for term in iteMS[0]]   
        seqFlow = [(term[0],[(flow['nameseq'],flow['probability'],[(seq['service'],seq['linksInput']) for seq in flow['dataSeq']])  for flow in term[1][0]]) for term in termsApp ]
 
        for srCad in srCandMS[0]:
-           combListSr = []
            if (srCad[2]):
               vReq = saw1(srCad[2])
-              scAllList = saw2(srCad[2], vReq,app[0]['weights'])
-              combListSr = combinationsSr(scAllList,srCad[1],srCad[0],app[0]['cost'],app[0]['availability'],app[0]['responseTime'],seqFlow)
-              
+              scAllList = saw2(srCad[2], vReq,app['weights'])
+              combListSr = combinationsSr(scAllList,srCad[1],srCad[0],app['cost'],app['availability'],app['responseTime'],seqFlow)
               if(len(combListSr)>0):
                    qtdAllCombPrvd.append((srCad[0],ms['nameMS'],len(combListSr)))
-                   combAvgList = list(combListSr)
-         
-           if (combAvgList):
-             combPr.append(combAvgList)       
-       listaCandEsp.append((ms['nameMS'],listaTesteEsp))
-      
-       if (combPr):
-         combMSPr.append(combPr)
-  
-   return (combMSPr, app[0]['cost'],app[0]['availability'],app[0]['responseTime'],app[0]['weights'])
+                   combPr.append(list(combListSr))
+       if (combPr): combMSPr.append(combPr)
+   return (combMSPr, app['cost'],app['availability'],app['responseTime'],app['weights'])
 
 def removeMS(flow,msData):
     j = 0
@@ -459,189 +336,122 @@ def removeMS(flow,msData):
         if (nameMs == msdata[0]):
             flow[0].pop(j)
             achou = 1
-      if(not achou):
-          j += 1
+      if(not achou): j += 1
 
 
-######### LOOP PRINCIPAL DE TESTES ORQUESTRADOS #########
+# ========================================================================
+# ORQUESTRAÇÃO DOS TESTES DE ESTRESSE
+# ========================================================================
 
-for app_num in apps_range:
-    for var_full, var_short in variacoes.items():
+print("\n" + "="*60)
+print("🚀 INICIANDO ESTEIRA DE TESTES DE ESTRESSE ESCALONADO")
+print("="*60)
+
+for app_id in apps_range:
+    
+    arq_app = f'Application{app_id}-{variacao}.json'
+    arq_ite = f'APP{app_id}-iterations-1.json'
+    
+    caminho_app = os.path.join(JSON_DIR, arq_app)
+    caminho_ite = os.path.join(JSON_DIR, arq_ite)
+    
+    if not os.path.exists(caminho_app) or not os.path.exists(caminho_ite):
+        print(f"\n❌ [AVISO] Arquivos da Aplicação {app_id} não encontrados. Pulando.")
+        continue
+
+    print(f"\n========================================================")
+    print(f" 📂 INICIANDO BATERIA PARA: APP {app_id} (Variação: {variacao})")
+    print(f"========================================================")
+
+    with open(caminho_app) as f: dataAMS = json.load(f)
+    with open(caminho_ite) as f: iteApp = json.load(f)
+    app_target = dataAMS[0] 
+
+    pasta_app = os.path.join(PASTA_SAIDA, f"APP_{app_id}")
+
+    for nivel in niveis_estresse:
+        print(f"\n⏳ Escalonando para: {nivel['id']}...")
         
-        # Constrói o path dos arquivos dinamicamente baseado na localização real
-        nameApp = os.path.join(JSON_DIR, f'Application{app_num}-{var_full}.json')
-        nameInte = os.path.join(JSON_DIR, f'APP{app_num}-iterations-1.json')
+        pasta_nivel = os.path.join(pasta_app, nivel['id'])
+        if not os.path.exists(pasta_nivel): os.makedirs(pasta_nivel)
+            
+        caminho_prov = os.path.join(JSON_DIR, nivel['prov'])
+        caminho_links = os.path.join(JSON_DIR, nivel['links'])
         
-        # Segurança contra arquivos não existentes no sistema
-        if not os.path.exists(nameApp) or not os.path.exists(nameInte):
-            print(f"[AVISO] Arquivos não encontrados para APP{app_num} ({var_full}). Pulando...")
-            # print(f"Caminho tentado: {nameApp}") # Descomente esta linha se quiser ver o caminho que ele tentou buscar
+        if not os.path.exists(caminho_prov):
+            print(f"   [!] JSON {nivel['prov']} não encontrado.")
             continue
-            
-        with open(nameApp) as json_data_file:
-            dataAMS = json.load(json_data_file)
+
+        with open(caminho_prov) as f: dataPrvd = json.load(f)
+        with open(caminho_links) as f: dataLinks = json.load(f)    
+
+        # Reseta controle interno para não misturar dados
+        qtdALlSerPrvd = []
+        qtdAllCombPrvd = []
         
-        with open(nameInte) as json_data_file:
-            iteApp = json.load(json_data_file)
+        inicio = time.time()
+        try:
+            # ETAPA 1: Peneira SAW
+            totalComb = cloudsSelection(app_target, dataAMS, dataPrvd, iteApp)
+          
+            if not totalComb[0]:
+                fim = time.time()
+                FinalTime = int(round(fim - inicio, 3) * 1000)
+                print(f"   ⚠️ Corte SAW: Nenhuma combinacao inicial atendeu a SLA ({FinalTime}ms).")
+                
+                with open(os.path.join(pasta_nivel, "executionTime_Estresse.txt"), 'w') as f:
+                    f.write(f"Tempo de execucao (ms):\n{FinalTime}\n")
+                with open(os.path.join(pasta_nivel, "resultData_Estresse.txt"), 'w') as f:
+                    f.write(f"ESTRESSE APP {app_id} - {nivel['id']}\nFalha SAW: Todas as opcoes foram filtradas.\n")
+                continue
+
+            posMS = []
+            for comb in totalComb[0]:
+                total = sum(len(eachComb) for eachComb in comb)
+                if totalComb[0].index(comb) == 0: posMS.append(total)
+                else: posMS.append(posMS[-1] + total)
+          
+            MS = [totalComb[0].index(comb) for comb in totalComb[0] for eachComb in comb for idx in range(len(eachComb))]
+            PR = [eachComb[0][0][1] for comb in totalComb[0] for eachComb in comb for idx in range(len(eachComb))]
+            Score = [(eachComb[0][1],eachComb[0][0][4],eachComb[0][0][5]) for comb in totalComb[0] for eachComb in comb for idx in range(len(eachComb))]
+            Cost = [eachComb[0][0][3] for comb in totalComb[0] for eachComb in comb for idx in range(len(eachComb))]
             
-        for app in dataAMS:
-            for namePrvd, nameLinks in zip(prvd, linksPrvd):
+            totalCost, appAva, appRT, priorities = totalComb[1], totalComb[2], totalComb[3], totalComb[4]
+            numofPrvds = calcNumofPrvds(nivel['links'])
+
+            MatLinks = [[] for x in range(numofPrvds*(numofPrvds-1))]
+            for j,link in enumerate(dataLinks): MatLinks[j] = link
+                        
+            MatIn = [[] for x in range(len(posMS))]
+            for j, item in enumerate(MS): MatIn[item].append((Score[j],Cost[j],PR[j]))
+            for k in range(len(MatIn)): MatIn[k].sort(key=lambda x: x[1])
+
+            seqFlowsMS = [(term['nameTerm'],[(flow['nameseq'],flow['probability'],[(seq['microservice'],seq['linksInput']) for seq in flow['dataSeq']]) for flow in term['sequences']]) for term in iteApp[0]['iterationsAPP'] ] 
+
+            # ETAPA 2: Colônia de Abelhas
+            sAPP = abcKnapSack(MatIn, totalCost, appAva, appRT, ITE_MAX, N_BEES, LIMIT, seqFlowsMS, MatLinks, priorities)
+
+            fim = time.time()
+            FinalTime = int(round(fim - inicio, 3) * 1000)
+            
+            arq_result = os.path.join(pasta_nivel, "resultData_Estresse.txt")
+            arq_tempo = os.path.join(pasta_nivel, "executionTime_Estresse.txt")
+            
+            with open(arq_tempo, 'w') as f:
+                f.write(f"Tempo de execucao (ms):\n{FinalTime}\n")
                 
-                with open(namePrvd) as json_data_file:
-                    dataPrvd = json.load(json_data_file)
-                with open(nameLinks) as json_data_file:
-                    dataLinks = json.load(json_data_file)    
-                
-                # Executa os testes iterando pelos 5 cenários calibrados
-                for cenario in cenarios:
-                    print(f"\n========================================================")
-                    print(f" Iniciando testes: APP {app_num} | Var: {var_full} | Cenário: {cenario['nome']}")
-                    print(f"========================================================")
-                    
-                    # Cria a estrutura de pastas: TPAppX / TPy / CenarioZ
-                    pasta_app = f"TPApp{app_num}"
-                    pasta_var = os.path.join(pasta_app, f"TP{var_short}")
-                    PASTA_RESULTADOS = os.path.join(pasta_var, f"Cenario{cenario['id']}_{cenario['nome']}")
-                    
-                    if not os.path.exists(PASTA_RESULTADOS):
-                        os.makedirs(PASTA_RESULTADOS)
-                        
-                    timeList = []
-                    listsAPP = []
-                    
-                    global qtdALlSerPrvd, qtdAllCombPrvd
-                    qtdALlSerPrvd = []
-                    qtdAllCombPrvd = []
-                    
-                    # Altere para range(30) ou o número desejado de execuções independentes
-                    for execucao in range(1): 
-                        totalComb = []
-                        inicio = time.time() 
-                        totalComb = cloudsSelection(app, dataAMS, dataPrvd)
-                  
-                        posMS = []
-                        for comb in totalComb[0]:
-                            total = 0
-                            for eachComb in comb:
-                                total += len(eachComb)
-                            if totalComb[0].index(comb) == 0:
-                                posMS.append(total)
-                            else: 
-                                posMS.append(posMS[-1] + total)
-                      
-                        MS = [totalComb[0].index(comb) for comb in totalComb[0]  for eachComb in comb for idx in range(len(eachComb))]
-                        PR = [eachComb[0][0][1] for comb in totalComb[0] for eachComb in comb for idx in range(len(eachComb))]
-                        Score = [(eachComb[0][1],eachComb[0][0][4],eachComb[0][0][5]) for comb in totalComb[0] for eachComb in comb for idx in range(len(eachComb))]
-                        Cost = [eachComb[0][0][3] for comb in totalComb[0] for eachComb in comb for idx in range(len(eachComb))]
-                        
-                        totalCost = totalComb[1]
-                        numofPrvds = calcNumofPrvds(nameLinks)
-                
-                        MatLinks = [[] for x in range(numofPrvds*(numofPrvds-1))]
-                        for j,link in enumerate(dataLinks):
-                            MatLinks[j] = link
-                                    
-                        MatIn = [[] for x in range(len(posMS))]
-                    
-                        for j, item in enumerate(MS):
-                            MatIn[item].append((Score[j],Cost[j],PR[j]))
-                    
-                        for k in range(len(MatIn)):    
-                            MatIn[k].sort(key=lambda x: x[1])
-                      
-                        priorities = totalComb[4]
-        
-                        termsApp1 = iteApp[0]['iterationsAPP']
-                        seqFlowsMS = [(term['nameTerm'],[(flow['nameseq'],flow['probability'],[(seq['microservice'],seq['linksInput']) for seq in flow['dataSeq']])  for flow in term['sequences']]) for term in termsApp1 ] 
-                
-                        # Aplica Parâmetros Dinâmicos do ABC a partir do Dicionário
-                        iteMax = cenario['iteMax']
-                        nBees = cenario['nBees']
-                        limit = cenario['limit']
-                        
-                        appAva = totalComb[2]
-                        appRT = totalComb[3]
-                        
-                        # Chamada do ABC
-                        sAPP = abcKnapSack(MatIn, totalCost, appAva, appRT, iteMax, nBees, limit, seqFlowsMS, MatLinks, priorities)
-                
-                        fim = time.time()
-                        FinalTime = int(round(fim - inicio,3)*1000)
-                        timeList.append(FinalTime)
-                        
-                        print(f"Execucao: {execucao+1} | Tempo: {FinalTime}ms")
-                        
-                        if(sAPP != [([], 0.0)]):
-                            msData = []
-                            for term in sAPP[0][0]:
-                                    for flow in term:
-                                        if (msData != []):
-                                            removeMS(flow,msData)
-                                            
-                                        for ms in flow[0]:
-                                            nameMs = "MS" + str(ms[2]+1)
-                                            avaMs = ms[0][0][1]
-                                            rtMs = ms[0][0][2]
-                                            costMs = ms[0][1]
-                                            scoreMs = ms[0][0][0]
-                                            prMs = ms[0][2]
-                                            msData.append((nameMs,avaMs,rtMs,costMs,scoreMs,prMs))
-                            msData.sort(key=lambda a: a[0])            
-                            appData = [msData,sAPP[0][1],sAPP[0][2],sAPP[0][3],sAPP[0][4],priorities]           
-                              
-                            listsAPP.append(appData)
-                        else: print('Resultado não encontrado para essa execução.')    
-                              
-                    
-                    # =================================================================
-                    # GRAVAÇÃO DOS DADOS NO ARQUIVO ESPECÍFICO DO CENÁRIO
-                    # =================================================================
-                    nomeArq = os.path.join(PASTA_RESULTADOS, f"resultData_{app['app']}.txt")
-                    with open(nomeArq, 'a') as arq2:
-                        arq2.write(f'Cenario Parametros ABC: {cenario["nome"]} (iteMax={iteMax}, nBees={nBees}, limit={limit})\n')
-                        arq2.write(f'Set of Provider: {namePrvd}\n\n')
-                        for appData in listsAPP:
-                            for ms in appData[0]:
-                              arq2.writelines(ms[0])
-                              arq2.writelines(': ')
-                              arq2.writelines('Availability = ')
-                              arq2.writelines(str(ms[1]))
-                              arq2.writelines(' Response Time = ')
-                              arq2.writelines(str(ms[2]))
-                              arq2.writelines(' Cost = ')
-                              arq2.writelines(str(ms[3]))
-                              arq2.writelines(' score = ')
-                              arq2.writelines(str(ms[4]))
-                              arq2.writelines(' Provider = ')
-                              arq2.writelines(str(ms[5]))
-                              arq2.write('\n')
-                            arq2.writelines('APP Data: ')
-                            arq2.writelines('Availability = ')
-                            arq2.writelines(str(appData[2]))
-                            arq2.writelines(' Response Time = ')
-                            arq2.writelines(str(appData[3]))
-                            arq2.writelines(' Cost = ')
-                            arq2.writelines(str(appData[4]))
-                            arq2.writelines(' Socre = ')
-                            arq2.writelines(str(appData[1]))
-                            arq2.write('\n')
-                            arq2.writelines('Priorities: ')
-                            arq2.writelines('Availability = ')
-                            arq2.writelines(str(priorities[2]))
-                            arq2.writelines(' response Time = ')
-                            arq2.writelines(str(priorities[0]))
-                            arq2.writelines(' Cost = ')
-                            arq2.writelines(str(priorities[1]))  
-                            arq2.write('\n')
-                            arq2.writelines(str(seqFlowsMS))
-                            arq2.write('\n\n\n')
-                    
-                    nomeArqTime = os.path.join(PASTA_RESULTADOS, f"executionTime_{app['app']}.txt")
-                    with open(nomeArqTime, 'a') as arq3:
-                        arq3.write(f'Cenario Parametros ABC: {cenario["nome"]}\n')
-                        arq3.write(f'Set of Provider: {namePrvd}\n\n')
-                        for tm in timeList:
-                            arq3.writelines(str(tm))
-                            arq3.write('\n')
-                     
-                    print(f"-> Dados salvos com sucesso em: {PASTA_RESULTADOS}")
+            if sAPP != [([], 0.0)]:
+                print(f"   ✅ ABC SUCESSO! Tempo: {FinalTime}ms | Score Final: {sAPP[0][1]}")
+                with open(arq_result, 'w') as f:
+                    f.write(f"ESTRESSE APP {app_id} - {nivel['id']}\n")
+                    f.write(f"APP Data: Availability = {sAPP[0][2]} Response Time = {sAPP[0][3]} Cost = {sAPP[0][4]} Score = {sAPP[0][1]}\n")
+            else:
+                print(f"   ⚠️ ABC FALHOU: Busca esgotada sem resultados uteis ({FinalTime}ms).")
+                with open(arq_result, 'w') as f:
+                    f.write(f"ESTRESSE APP {app_id} - {nivel['id']}\n")
+                    f.write("Nenhuma rota que batesse as metas de SLA foi encontrada pelas abelhas.\n")
+
+        except Exception as e:
+            print(f"❌ [FALHA COMPUTACIONAL] Nível {nivel['id']} quebrou. Erro: {e}")
+
+print("\n🎉 Testes Concluídos! Verifique a pasta 'Testes_Estresse_Escalonado'.")

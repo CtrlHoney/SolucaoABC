@@ -14,9 +14,9 @@ import os
 
 app = Flask(__name__)
 
-#prvd=['./JSON-ApproachACOKP-2GG/ProvidersACOKP10-10.json','./JSON-ApproachACOKP-2GG/ProvidersACOKP15-10.json','./JSON-ApproachACOKP-2GG/ProvidersACOKP20-10.json','./JSON-ApproachACOKP-2GG/ProvidersACOKP25-10.json','./JSON-ApproachACOKP-2GG/ProvidersACOKP20-5.json','./JSON-ApproachACOKP-2GG/ProvidersACOKP20-15.json','./JSON-ApproachACOKP-2GG/ProvidersACOKP20-20.json']
+prvd=['./JSON-ApproachACOKP-2GG/ProvidersACOKP10-10.json','./JSON-ApproachACOKP-2GG/ProvidersACOKP15-10.json','./JSON-ApproachACOKP-2GG/ProvidersACOKP20-10.json','./JSON-ApproachACOKP-2GG/ProvidersACOKP25-10.json','./JSON-ApproachACOKP-2GG/ProvidersACOKP20-5.json','./JSON-ApproachACOKP-2GG/ProvidersACOKP20-15.json','./JSON-ApproachACOKP-2GG/ProvidersACOKP20-20.json']
 #testar com provedor 5-5 e ir aumentando
-prvd=['./JSON-ApproachACOKP-2GG/ProvidersACOKP10-10.json']
+#prvd=['./JSON-ApproachACOKP-2GG/ProvidersACOKP100-10.json']
 
 #linksPrvd=['./JSON-ApproachACOKP-2GG/linksProviders10.json','./JSON-ApproachACOKP-2GG/linksProviders15.json','./JSON-ApproachACOKP-2GG/linksProviders20.json','./JSON-ApproachACOKP-2GG/linksProviders25.json','./JSON-ApproachACOKP-2GG/linksProviders20.json','./JSON-ApproachACOKP-2GG/linksProviders20.json','./JSON-ApproachACOKP-2GG/linksProviders20.json']
 linksPrvd=['./JSON-ApproachACOKP-2GG/linksProviders10.json']
